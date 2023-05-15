@@ -3,6 +3,8 @@ const morgan = require('morgan');
 const  mongoose  = require("mongoose");
 const dotenv = require('dotenv');
 const dbConnect = require("./config/dbConnect");
+const sqlConnect = require("./config/sqlConnect");
+// const Redis = require("ioredis"); //for catching data using IOredis
 const User = require("./models/user");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
 const routes = require('./routes');
@@ -12,11 +14,12 @@ const routes = require('./routes');
 const app = express();
 dotenv.config();
 
-
 /*
  * connecting DB
  */
 dbConnect();
+// sqlConnect();
+
 
 app.use(morgan('dev'));
 app.use("/uploads", express.static("uploads"));
@@ -30,8 +33,5 @@ app.use('/api/v1', routes);
 
 app.use(notFound);
 app.use(errorHandler);
-// app.listen(PORT_NO, () => {
-//   console.log("Server started and listening on port: ".concat(PORT_NO));
-// });
 
 module.exports = app

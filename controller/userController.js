@@ -2,7 +2,14 @@ const mongoose = require("mongoose");
 const User = require("../models/user");
 const STATUSCODE = require("../utils/status-codes");
 const {generateUserToken} = require("../config/jwtToken")
+const Userservices =  require('../services/user.service')
+const Usercache =  require("../caching/user.cache")
 
+
+/**
+ * the controler will server as the data logic
+ * the controler will basically interact with the client by receicing and returning datas to client
+ */
 exports.createUser = async (req, res) => {
   const { first_name, last_name, email, phone } = req.body;
   try {
@@ -11,23 +18,15 @@ exports.createUser = async (req, res) => {
       status: "failed",
       message: "all fields are required",
     });
-    const userExist = await User.findOne({ email: req.body.email });
-    if (userExist)
-      return res.status(STATUSCODE.BAD_REQUEST).json({
-        status: "failed",
-        message: "user already exist",
-      });
 
-    const user = await User.create({
-      first_name,
-      last_name,
-      email,
-      phone,
-    });
-    return res.status(STATUSCODE.CREATED).json({
-      status: "success",
-      user,
-    });
+    const data = await Userservices.createUser(req.body)
+    return  res.status(data.STATUS_CODE).json({
+          status: data.STATUS,
+          message: data.MESSAGE,
+          data: data.DATA
+        });
+
+ 
   } catch (error) {
     return res.status(STATUSCODE.SERVER_ERROR).json({
       status: "failed",
@@ -36,22 +35,29 @@ exports.createUser = async (req, res) => {
   }
 };
 
+
+
+
+// ----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 exports.login = async(req, res) => {
   try{
     const {email} = req.body
+
+    
     if(!email) 
     return res.status(STATUSCODE.BAD_REQUEST).json({
       status: "failed",
       message: "email is required to have access",
     });
 
-    const user = await User.findOne({ email: req.body.email });
-    const token = generateUserToken(user)
+    
+    const data = await Userservices.login(email)
+    const token = generateUserToken(data)
 
-    if (user)
-      return res.status(STATUSCODE.OK).json({
-        status: "success",
-        user,
+    if (data)
+      return res.status(data.STATUS_CODE).json({
+        data,
         token
       });
   }catch(error){
@@ -62,19 +68,26 @@ exports.login = async(req, res) => {
   }
 }
 
+
 exports.getUser = async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.params.id });
-    if (!user)
-      return res.status(STATUSCODE.NOT_FOUND).json({
-        status: "failed",
-        message: "user does not exist",
+    const cachedData = await Usercache.getUser(`user-${req.params.id}`)
+    if(cachedData) {
+       return  res.json({cached:JSON.parse(cachedData)})
+    }
+
+    const data = await Userservices.getUser(req.params.id)
+    if (!data)
+      return  res.status(data.STATUS_CODE).json({
+        status: data.STATUS,
+        message: data.MESSAGE,
       });
 
-      return res.status(STATUSCODE.OK).json({
-        status: "success",
-        user
-      });;
+      Usercache.addUser(`user-${req.params.id}`, data)
+      return  res.status(data.STATUS_CODE).json({
+        data 
+      });
+
   } catch (error) {
     return res.status(STATUSCODE.SERVER_ERROR).json({
       status: "failed",

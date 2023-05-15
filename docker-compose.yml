@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  node_backend:
+    container_name: ise_foundation
+    image: ise_foundation:0.0.2
+    build:
+      context: .
+    ports:
+      - "4003:4003"
+    environment:
+      - PORT=4003  
+    depends_on:
+      - node_db  
+node_db:
+  container_name: ise_db
+  image: "postgres:12"
+  Ports:
+  - "5432:5432"
+  environment:
+   - POSTGRES_USER=aarondebarron
+   - POSTGRES_PASSWORD=123456
+   - POSTGRES_DB=ise_db
+  volumes:
+  - nps_data:/var/lib/postgresql/data          
+volumes: 
+ nps_data: {}
