@@ -27,14 +27,14 @@ A WALK THROUGH
 
 
  # Following frame-works, libraries and dependencies used:
-  Nodejs
-  Expressjs
-  mongoose
-  mongodb
-  Nodemon   
-  morgan
-  jest
-  supertest
-  jwt
-  dotenv
-  cors
+  Nodejs,
+  Expressjs,
+  mongoose,
+  mongodb,
+  Nodemon,  
+  morgan,
+  jest,
+  supertest,
+  jwt,
+  dotenv,
+  cors,
